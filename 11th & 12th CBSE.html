@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Benchers - AI Study Planner</title>
+    <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.20.15/babel.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7fafc;
+        }
+        .form-container {
+            background-color: white;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .dashboard-container {
+            background-color: white;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .error-message {
+            color: #e53e3e;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+        .prompt-message {
+            background-color: #e6fffa;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1.5rem;
+            color: #2d3748;
+        }
+        .day-button {
+            padding: 0.5rem 1.25rem;
+            margin: 0.25rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            background-color: white;
+            transition: all 0.2s ease;
+        }
+        .day-button:hover {
+            background-color: #edf2f7;
+        }
+        .day-button.selected {
+            background-color: #4fd1c5;
+            color: white;
+            border-color: #4fd1c5;
+        }
+        .dashboard-section {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #edf2f7;
+        }
+        .dashboard-section:last-child {
+            border-bottom: none;
+        }
+        .dashboard-section h3 {
+            color: #2d3748;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        .dashboard-section h3::before {
+            content: '•';
+            color: #4fd1c5;
+            margin-right: 0.5rem;
+            font-size: 1.5rem;
+        }
+        .nav-container {
+            background: linear-gradient(to right, #4fd1c5, #4299e1);
+        }
+        .btn-primary {
+            background-color: #4fd1c5;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s ease;
+        }
+        .btn-primary:hover {
+            background-color: #38b2ac;
+        }
+        input, select {
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            width: 100%;
+            transition: border-color 0.2s ease;
+        }
+        input:focus, select:focus {
+            border-color: #4fd1c5;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const careerData = [
+            { srNo: 1, stream: "Science (PCM)", careerOption: "Hardcore Engineering", process: "12th PCM → B.Tech", branch: "Computer Science (CSE)", whoShouldChoose: "Loves programming, logic, tech, gadgets.", exams: "JEE Main/Adv, BITSAT, VITEEE", careerPaths: "Software Engineer, Data Scientist, AI/ML Engineer" },
+            { srNo: 2, stream: "Science (PCM)", careerOption: "Hardcore Engineering", process: "12th PCM → B.Tech", branch: "Information Technology (IT)", whoShouldChoose: "Tech-savvy with interest in apps, networks, security.", exams: "JEE Main/Adv, BITSAT, VITEEE", careerPaths: "Web Developer, IT Analyst, Network Security Expert" },
+            { srNo: 3, stream: "Science (PCM)", careerOption: "Hardcore Engineering", process: "12th PCM → B.Tech", branch: "Mechanical Engineering", whoShouldChoose: "Loves machines, engines, tools.", exams: "JEE Main/Adv, BITSAT, VITEEE", careerPaths: "Design Engineer, Automotive, Manufacturing Engineer" },
+            { srNo: 4, stream: "Science (PCM)", careerOption: "Hardcore Engineering", process: "12th PCM → B.Tech", branch: "Civil Engineering", whoShouldChoose: "Interested in architecture, infrastructure, environment.", exams: "JEE Main/Adv, BITSAT, VITEEE", careerPaths: "Site Engineer, Structural Designer, Govt. Projects" },
+            { srNo: 5, stream: "Science (PCM)", careerOption: "Hardcore Engineering", process: "12th PCM → B.Tech", branch: "Electrical Engineering", whoShouldChoose: "Likes circuits, transformers, heavy engineering.", exams: "JEE Main/Adv, BITSAT, VITEEE", careerPaths: "Power Engineer, Electrical Designer, Govt. PSU jobs" },
+            { srNo: 6, stream: "Science (PCM)", careerOption: "Hardcore Engineering", process: "12th PCM → B.Tech", branch: "Electronics & Comm. (ECE)", whoShouldChoose: "Interest in electronics + coding.", exams: "JEE Main/Adv, BITSAT, VITEEE", careerPaths: "Telecom, VLSI, Embedded Systems, Robotics" },
+            { srNo: 7, stream: "Science (PCM)", careerOption: "Hardcore Engineering", process: "12th PCM → B.Tech", branch: "AI / Data Science / ML", whoShouldChoose: "Deep interest in future tech, coding, algorithms.", exams: "JEE Main/Adv, BITSAT, VITEEE", careerPaths: "AI Engineer, Data Scientist, Analyst" },
+            { srNo: 8, stream: "Science (PCM)", careerOption: "Hardcore Engineering", process: "12th PCM → B.Tech", branch: "Chemical Engineering", whoShouldChoose: "Enjoys chemistry, problem-solving.", exams: "JEE Main/Adv, BITSAT, VITEEE", careerPaths: "Process Engineer, Petroleum, Pharma" },
+            { srNo: 9, stream: "Science (PCM)", careerOption: "Hardcore Engineering", process: "12th PCM → B.Tech", branch: "Aerospace Engineering", whoShouldChoose: "Dreams of aircrafts, aviation, space.", exams: "JEE Main/Adv, BITSAT, VITEEE", careerPaths: "ISRO, DRDO, Aircraft Design, Aviation Industry" },
+            { srNo: 10, stream: "Science (PCM)", careerOption: "Hardcore Engineering", process: "12th PCM → B.Tech", branch: "Biomedical Engineering", whoShouldChoose: "Interest in biology + engineering.", exams: "JEE Main/Adv, BITSAT, VITEEE", careerPaths: "MedTech, Equipment R&D, Hospitals" },
+            { srNo: 11, stream: "Science (PCM)", careerOption: "Hardcore Engineering", process: "12th PCM → B.Tech", branch: "Environmental Engg.", whoShouldChoose: "Passionate about nature, sustainability.", exams: "JEE Main/Adv, BITSAT, VITEEE", careerPaths: "Govt. roles, NGOs, Climate Corps" },
+            { srNo: 12, stream: "Science (PCM)", careerOption: "Hardcore Engineering", process: "12th PCM → B.Tech", branch: "Industrial Production", whoShouldChoose: "Likes planning, efficiency, systems.", exams: "JEE Main/Adv, BITSAT, VITEEE", careerPaths: "Operations Manager, Plant Engineer, Supply Chain" },
+            { srNo: 13, stream: "Science (PCM)", careerOption: "Defence (After 12th) – Army, Navy, Air Force", process: "12th PCM → NDA Written + SSB Interview + Medical + Academy Training", branch: "Army", whoShouldChoose: "Physically fit, disciplined, patriotic, leadership qualities", exams: "NDA", careerPaths: "Lieutenant → Captain → Major, etc." },
+            { srNo: 14, stream: "Science (PCM)", careerOption: "Defence (After 12th) – Army, Navy, Air Force", process: "12th PCM → INET (for Navy) + SSB + Training", branch: "Navy", whoShouldChoose: "Physically fit, Strong in Physics & Math, love for sea/naval forces", exams: "INET", careerPaths: "Sub-Lieutenant → Commander → Admiral" },
+            { srNo: 15, stream: "Science (PCM)", careerOption: "Defence (After 12th) – Army, Navy, Air Force", process: "12th PCM → TES Entry (No Written Exam) + SSB + Training", branch: "Technical", whoShouldChoose: "Physically fit, 85%+ in PCM, loves engineering & tech in defence", exams: "TES (Technical Entry Scheme)", careerPaths: "Engineer Officer in Army" },
+            { srNo: 16, stream: "Science (PCM)", careerOption: "Defence (After Graduation) – Army, Navy, Air Force", process: "12th PCM → Graduation (B.Tech/B.Sc) → UPSC CDS", branch: "Army, Navy, Air Force", whoShouldChoose: "Physically Fit, Graduates with leadership, discipline, and fitness", exams: "CDS (Combined Defence Services)", careerPaths: "Lieutenant → Captain → Major → Colonel, etc." },
+            { srNo: 17, stream: "Science (PCM)", careerOption: "Defence: Paramilitary Forces Officer", process: "12th PCM → Graduation → UPSC CAPF AC Exam", branch: "Paramilitary Forces", whoShouldChoose: "Physically Fit, Wants to serve in CISF, BSF, CRPF, etc., strong in reasoning & fitness", exams: "CAPF AC (Assistant Commandant)", careerPaths: "AC → DC → Commandant → IG, etc." },
+            { srNo: 18, stream: "Science (PCM)", careerOption: "Manager / Analyst (Corporate Sector)", process: "12th PCM → BBA/BMS → MBA", branch: "BBA (Marketing, HR, Finance), MBA", whoShouldChoose: "If you are good at communication, teamwork, problem-solving, and leadership", exams: "CUET UG, IPMAT, NPAT, CAT", careerPaths: "Business Analyst → Manager → VP → CXO" },
+            { srNo: 19, stream: "Science (PCM)", careerOption: "Finance (Investment Banker, Analyst)", process: "12th PCM → B.Com/BBA → CFA / MBA", branch: "Finance, Economics", whoShouldChoose: "If you're great with numbers, love analysing data, and want high-paying finance roles", exams: "CUET, CFA, FRM", careerPaths: "Investment Banker, Portfolio Manager, Financial Analyst" },
+            { srNo: 20, stream: "Science (PCM)", careerOption: "Government Jobs (Bank/SSC/Railway)", process: "After 12th or Graduation → Govt Exams", branch: "SSC, RRB, IBPS Etc.", whoShouldChoose: "Want a secure govt job with steady income? Good at aptitude & math?", exams: "SSC CHSL/CGL, RRB, IBPS PO", careerPaths: "Clerk, Officer, Inspector, Auditor" },
+            { srNo: 21, stream: "Science (PCM)", careerOption: "Law (Corporate Lawyer)", process: "12th PCM → 5-Year Law (BA/BBA + LLB)", branch: "Law", whoShouldChoose: "Love debating? Strong in logic and reasoning? Dream of working in top law firms?", exams: "CLAT", careerPaths: "Corporate Lawyer, Legal Advisor, Judge (later with exams)" },
+            { srNo: 22, stream: "Science (PCM)", careerOption: "Civil Services (IAS/IPS/IFS)", process: "12th PCM →Graduation → UPSC CSE", branch: "Public Administration", whoShouldChoose: "Want to serve the country in top govt roles? Enjoy reading, current affairs, governance", exams: "UPSC", careerPaths: "IAS, IPS, IFS, IRS" },
+            { srNo: 23, stream: "Science (PCM)", careerOption: "Teaching (Maths/Science)", process: "12th PCM →B.Sc/B.Tech → B.Ed → CTET/TET", branch: "Science + B.Ed", whoShouldChoose: "Love explaining concepts? Want to guide the next generation?", exams: "CTET, UGC-NET", careerPaths: "School Teacher, Lecturer" },
+            { srNo: 24, stream: "Science (PCB)", careerOption: "Doctor (MBBS/BDS)", process: "12th PCB → NEET → MBBS/BDS", branch: "MBBS, BDS", whoShouldChoose: "Students passionate about healing, science, and helping people", exams: "NEET-UG", careerPaths: "Doctor, Dentist, Surgeon, Medical Officer" },
+            { srNo: 25, stream: "Science (PCB)", careerOption: "Allied Medical Sciences", process: "12th PCB → Paramedical/BSc Courses", branch: "BPT, B.Sc Nursing, BMLT, Radiology etc.", whoShouldChoose: "Interested in medical field, but not MBBS? Want to work in labs, OT, or radiology?", exams: "NEET/CUET or Institute-level Exams", careerPaths: "Physiotherapist, Lab Technician, Radiologist, Nurse" },
+            { srNo: 26, stream: "Science (PCB)", careerOption: "Biotech / Research", process: "12th PCB → B.Sc (Biotech/Bio) → M.Sc / PhD", branch: "B.Sc (Biotech, Microbiology), M.Sc", whoShouldChoose: "Curious about research, lab work, innovation in biology or genetics", exams: "CUET, DUET, IISER", careerPaths: "Research Scientist, Biotech Specialist, Lab Analyst" },
+            { srNo: 27, stream: "Science (PCB)", careerOption: "Pharmacy", process: "12th PCB → B.Pharm → M.Pharm or Job", branch: "B.Pharm, M.Pharm", whoShouldChoose: "Love chemistry & medicine? Want to work in drug development or pharma sector?", exams: "CUET, State CETs", careerPaths: "Pharmacist, Drug Inspector, Pharma Researcher" },
+            { srNo: 28, stream: "Science (PCB)", careerOption: "Psychology / Counselling", process: "12th PCB → B.A/B.Sc Psychology → M.A/M.Sc Clinical Psychology", branch: "Psychology (Clinical/Applied)", whoShouldChoose: "Want to help people with mental well-being? Empathetic and good listener?", exams: "CUET, DUET, JNU Entrance, TISS", careerPaths: "Psychologist, Counsellor, Therapist" },
+            { srNo: 29, stream: "Science (PCB)", careerOption: "Government Jobs", process: "After 12th or Graduation → Govt Exams", branch: "SSC, RRB, IBPS", whoShouldChoose: "Looking for secure govt job? Good in aptitude & general knowledge?", exams: "SSC CHSL/CGL, RRB, IBPS PO", careerPaths: "Clerk, Officer, Inspector, Auditor" },
+            { srNo: 30, stream: "Science (PCB)", careerOption: "Law (Medical + Corporate)", process: "12th → 5-Year Law (BA/BBA + LLB)", branch: "Law", whoShouldChoose: "Good at reasoning and argument? Want to work in legal or healthcare compliance?", exams: "CLAT", careerPaths: "Lawyer (Medical/Corporate), Legal Advisor" },
+            { srNo: 31, stream: "Science (PCB)", careerOption: "Civil Services (IAS/IPS)", process: "Graduation → UPSC CSE", branch: "Public Administration, Life Sciences", whoShouldChoose: "Ambitious to join top govt services? Enjoy reading, analysis & public administration?", exams: "UPSC", careerPaths: "IAS, IPS, IFS, IRS" },
+            { srNo: 32, stream: "Science (PCB)", careerOption: "Teaching (Biology/Chemistry)", process: "B.Sc → B.Ed → CTET/TET", branch: "Science + B.Ed", whoShouldChoose: "Enjoy explaining concepts? Passionate about education?", exams: "CTET, UGC-NET", careerPaths: "School Teacher, Lecturer" },
+            { srNo: 33, stream: "Humanities / Arts", careerOption: "Civil Services (IAS/IPS)", process: "Graduation (any stream) → UPSC", branch: "B.A. + UPSC Prep", whoShouldChoose: "Loves current affairs, governance, public service", exams: "UPSC CSE", careerPaths: "IAS, IPS, IFS, IRS" },
+            { srNo: 34, stream: "Humanities / Arts", careerOption: "Law (Advocate, Judge)", process: "12th → 5-Year Law Course (BA LLB)", branch: "BA LLB, BBA LLB", whoShouldChoose: "Strong in logic, argument, debate & law interest", exams: "CLAT, AILET, LSAT", careerPaths: "Lawyer, Judge, Legal Advisor" },
+            { srNo: 35, stream: "Humanities / Arts", careerOption: "Journalism / Mass Comm", process: "12th → B.A. Journalism/Mass Comm → PG or Job", branch: "BJMC, BA (JMC), PG Diploma", whoShouldChoose: "Loves writing, speaking, content creation, news, media", exams: "CUET, IPU CET", careerPaths: "Journalist, News Anchor, PR, Content Strategist" },
+            { srNo: 36, stream: "Humanities / Arts", careerOption: "Design & Fine Arts", process: "12th → B.Des / BFA / B.Voc in Design", branch: "B.Des (Fashion, Graphic, Interior), BFA", whoShouldChoose: "Creative mindset, visual thinker, interest in fashion, art, design", exams: "NID, NIFT, CUET", careerPaths: "Fashion Designer, UI/UX Designer, Illustrator" },
+            { srNo: 37, stream: "Humanities / Arts", careerOption: "Psychology / Counselling", process: "12th → B.A. Psychology → M.A. Clinical Psychology", branch: "BA (Psychology), MA (Clinical/Applied)", whoShouldChoose: "Wants to help others, good listener, empathetic, emotional intelligence", exams: "CUET, DUET, TISS", careerPaths: "Psychologist, School Counsellor, Therapist" },
+            { srNo: 38, stream: "Humanities / Arts", careerOption: "Hotel Management / Hospitality", process: "12th → BHM / Hotel Management Course", branch: "BHM, BBA in Hospitality", whoShouldChoose: "Loves service industry, good at communication, people skills", exams: "NCHMCT JEE, CUET, IHM Exams", careerPaths: "Hotel Manager, Chef, Event Manager" },
+            { srNo: 39, stream: "Humanities / Arts", careerOption: "Teaching / Education", process: "B.A. + B.Ed or Integrated B.A. B.Ed", branch: "B.A., B.Ed, M.Ed", whoShouldChoose: "Loves teaching, explanation, working with kids/students", exams: "CUET, CTET, State TETs", careerPaths: "Teacher (School), Lecturer, Professor" },
+            { srNo: 40, stream: "Humanities / Arts", careerOption: "Social Work / NGO Sector", process: "12th → B.A. / BSW → MSW", branch: "BSW, MSW, B.A. Sociology", whoShouldChoose: "Interested in helping communities, underprivileged, and social development", exams: "CUET, TISS, JNU", careerPaths: "Social Worker, NGO Program Manager, Policy Advocate" },
+            { srNo: 41, stream: "Humanities / Arts", careerOption: "Government Jobs (SSC/Banking)", process: "After 12th or Graduation → Govt Exams", branch: "SSC, IBPS, RRB, Railways", whoShouldChoose: "Wants a stable job, good in aptitude, reasoning, and general awareness", exams: "SSC CHSL, CGL, IBPS, RRB", careerPaths: "Clerk, Officer, Auditor, Inspector" },
+            { srNo: 42, stream: "Humanities / Arts", careerOption: "Corporate Sector (HR, Marketing)", process: "12th → BBA / B.Com → MBA", branch: "BBA, B.Com, MBA", whoShouldChoose: "Good at teamwork, people skills, leadership, communication", exams: "CUET, IPMAT, CAT", careerPaths: "HR Manager, Marketing Executive, Business Analyst" },
+            { srNo: 43, stream: "Commerce", careerOption: "Chartered Accountant (CA)", process: "12th → CA Foundation → Intermediate → Final", branch: "CA Course (ICAI)", whoShouldChoose: "Strong in accounting, math, logic; prefers deep specialization", exams: "ICAI Exams (No college degree needed)", careerPaths: "Auditor, Tax Consultant, Finance Controller" },
+            { srNo: 44, stream: "Commerce", careerOption: "Company Secretary (CS)", process: "12th → CS Foundation → Executive → Professional", branch: "CS Course (ICSI)", whoShouldChoose: "Interested in law, corporate compliance, governance", exams: "ICSI Exams", careerPaths: "Company Secretary, Compliance Officer" },
+            { srNo: 45, stream: "Commerce", careerOption: "Finance & Investment Banking", process: "12th → B.Com / BBA → CFA / MBA (Finance)", branch: "B.Com, BBA, CFA, MBA", whoShouldChoose: "Good with numbers, data, analysis, financial planning", exams: "CUET, CAT, CFA, FRM", careerPaths: "Investment Banker, Financial Analyst, Portfolio Manager" },
+            { srNo: 46, stream: "Commerce", careerOption: "Management / Corporate Roles", process: "12th → BBA/BMS → MBA", branch: "BBA, BMS, MBA", whoShouldChoose: "Leadership, communication, team coordination", exams: "CUET, IPMAT, NPAT, CAT", careerPaths: "Manager, Business Analyst, Marketing Head, CXO" },
+            { srNo: 47, stream: "Commerce", careerOption: "Law (Corporate Lawyer)", process: "12th → BBA LLB / BA LLB", branch: "BBA LLB, BA LLB", whoShouldChoose: "Likes debates, law, logic, corporate world", exams: "CLAT, AILET, LSAT", careerPaths: "Corporate Lawyer, Legal Advisor, Compliance Head" },
+            { srNo: 48, stream: "Commerce", careerOption: "Hotel Management / Hospitality", process: "12th → BHM / BBA in Hospitality", branch: "BHM, BBA (Hospitality, Tourism)", whoShouldChoose: "Good at communication, service orientation, people management", exams: "NCHMCT JEE, CUET, IHM CET", careerPaths: "Hotel Manager, Event Planner, Cruise Manager" },
+            { srNo: 49, stream: "Commerce", careerOption: "Economics / Research", process: "12th → B.A. Economics / B.Com → M.A. / MBA / Research", branch: "B.A. (Eco), B.Com, M.A., M.Sc.", whoShouldChoose: "Interested in data, policy, economics, analytics", exams: "CUET, DUET", careerPaths: "Economist, Policy Analyst, Researcher" },
+            { srNo: 50, stream: "Commerce", careerOption: "Government Jobs", process: "12th / Graduation → Govt. Exams", branch: "Any graduation + prep", whoShouldChoose: "Seeks job security, good in aptitude, reasoning", exams: "SSC CHSL/CGL, IBPS, Railways, UPSC", careerPaths: "Bank PO, Auditor, Inspector, Administrative Officer" },
+            { srNo: 51, stream: "Commerce", careerOption: "Entrepreneurship / Startups", process: "12th → BBA / BMS / B.Com → Real-world learning", branch: "BBA, B.Com, Startup Courses (Optional)", whoShouldChoose: "Risk-takers, problem solvers, independent thinkers", exams: "No fixed exam – practical, innovation-focused", careerPaths: "Startup Founder, Small Business Owner, Innovator" },
+            { srNo: 52, stream: "Agriculture", careerOption: "Agricultural Scientist", process: "B.Sc Agriculture → M.Sc Agri / Ph.D", branch: "B.Sc Agriculture, M.Sc Agronomy", whoShouldChoose: "Interested in crop science, research, innovation", exams: "ICAR AIEEA, State Agri Univ. Exams", careerPaths: "Agricultural Scientist, Research Officer, Lab Scientist" },
+            { srNo: 53, stream: "Agriculture", careerOption: "Horticulturist", process: "B.Sc Horticulture", branch: "B.Sc Horticulture", whoShouldChoose: "Loves working with plants, trees, flowers", exams: "ICAR AIEEA, State Univ. Exams", careerPaths: "Horticulturist, Nursery Manager, Floriculturist" },
+            { srNo: 54, stream: "Agriculture", careerOption: "Veterinary Doctor", process: "B.V.Sc & AH", branch: "Bachelor of Veterinary Science", whoShouldChoose: "Interested in animal care, biology, medical sciences", exams: "NEET-UG", careerPaths: "Veterinary Doctor, Animal Surgeon, Vet Officer" },
+            { srNo: 55, stream: "Agriculture", careerOption: "Food Technologist", process: "B.Sc Food Technology / B.Tech Food Tech → M.Tech", branch: "B.Sc/B.Tech Food Technology", whoShouldChoose: "Curious about food processing, safety, packaging", exams: "ICAR AIEEA, JEE (for B.Tech), State CETs", careerPaths: "Food Technologist, Quality Control Officer" },
+            { srNo: 56, stream: "Agriculture", careerOption: "Agri-Business Management", process: "B.Sc Agri / BBA Agri → MBA Agri Business", branch: "B.Sc Agri + MBA (Agri Business), BBA (Agri)", whoShouldChoose: "Interested in agriculture + management/business", exams: "CUET, ICAR, CAT, State MBA Entrances", careerPaths: "Agri-Marketing Manager, Supply Chain Executive" },
+            { srNo: 57, stream: "Agriculture", careerOption: "Forestry / Wildlife Officer", process: "B.Sc Forestry → Govt. Exams", branch: "B.Sc Forestry, M.Sc Forestry", whoShouldChoose: "Nature lover, wants to work in wildlife & forest conservation", exams: "ICAR, UPSC IFS, State Forest Services", careerPaths: "Forest Officer, Wildlife Officer, Environmental Consultant" },
+            { srNo: 58, stream: "Agriculture", careerOption: "Soil & Water Conservationist", process: "B.Sc Agriculture → M.Sc Soil Science", branch: "B.Sc Soil Science, M.Sc Soil Conservation", whoShouldChoose: "Interested in environment, water management", exams: "ICAR AIEEA", careerPaths: "Soil Scientist, Irrigation Officer, Conservationist" },
+            { srNo: 59, stream: "Agriculture", careerOption: "Fisheries Science Professional", process: "B.F.Sc (Bachelor of Fisheries Science)", branch: "B.F.Sc", whoShouldChoose: "Likes marine biology, aquatic life, fish farming", exams: "ICAR AIEEA", careerPaths: "Fishery Officer, Aquaculturist, Hatchery Manager" },
+            { srNo: 60, stream: "Agriculture", careerOption: "Dairy Technologist", process: "B.Tech/B.Sc in Dairy Technology", branch: "B.Tech/B.Sc Dairy Technology", whoShouldChoose: "Interested in milk processing, dairy tech", exams: "ICAR AIEEA, State CETs", careerPaths: "Dairy Technologist, Plant Supervisor, Quality Control Executive" },
+            { srNo: 61, stream: "Agriculture", careerOption: "Environmental Scientist", process: "B.Sc Environmental Science → M.Sc", branch: "B.Sc Environmental Science, M.Sc Environment", whoShouldChoose: "Interested in climate change, pollution control, sustainability", exams: "CUET, ICAR, JNU, BHU", careerPaths: "Environmental Analyst, Researcher, Consultant" },
+            { srNo: 62, stream: "Agriculture", careerOption: "Govt. Jobs (Agri-Specific)", process: "Graduate → Competitive Exams", branch: "Any Graduation with Agriculture Background", whoShouldChoose: "Aspires for stability, public service, agriculture policy implementation", exams: "UPSC, IBPS AFO, NABARD, State PSCs", careerPaths: "Agricultural Officer, NABARD Officer, Field Inspector" },
+            { srNo: 63, stream: "Agriculture", careerOption: "Teaching (School)", process: "B.Sc Agri → B.Ed or 12th → D.El.Ed → CTET/TET", branch: "B.Ed, D.El.Ed, CTET Qualified", whoShouldChoose: "Loves teaching, sharing knowledge, wants govt./private school job", exams: "CTET, TET, State B.Ed Entrances", careerPaths: "School Teacher (Science/EVS), Agriculture Subject Teacher" },
+            { srNo: 64, stream: "Agriculture", careerOption: "Teacher / Professor", process: "B.Sc Agriculture → M.Sc / Ph.D → NET", branch: "Agricultural Sciences", whoShouldChoose: "Loves teaching, guiding students, sharing knowledge", exams: "ICAR AIEEA, UGC-NET, ARS", careerPaths: "School/College Teacher, Lecturer, Assistant Professor, Scientist (ARS)" },
+            { srNo: 65, stream: "Agriculture", careerOption: "Agricultural Engineer", process: "B.Tech Agricultural Engineering", branch: "B.Tech Agricultural Engineering", whoShouldChoose: "Good at math + machinery, interested in automation in agriculture", exams: "JEE, State CETs, ICAR", careerPaths: "Irrigation Engineer, Agri-Machinery Expert" }
+        ];
+
+        const statesUTs = [
+            "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chandigarh",
+            "Chhattisgarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Goa", "Gujarat", "Haryana",
+            "Himachal Pradesh", "Jammu and Kashmir", "Jharkhand", "Karnataka", "Kerala", "Ladakh", "Lakshadweep",
+            "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Puducherry",
+            "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"
+        ];
+
+        const years = Array.from({ length: 11 }, (_, i) => 2015 + i);
+        const hours = Array.from({ length: 16 }, (_, i) => i + 1);
+        const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+        function Navbar() {
+            return (
+                <nav className="nav-container p-4">
+                    <div className="container mx-auto flex justify-between items-center">
+                        <h1 className="text-white text-2xl font-semibold">Digital Benchers</h1>
+                        <div className="space-x-6">
+                            <a href="#" className="text-white hover:text-gray-200 transition">Home</a>
+                            <a href="#" className="text-white hover:text-gray-200 transition">About</a>
+                            <a href="#" className="text-white hover:text-gray-200 transition">Contact</a>
+                        </div>
+                    </div>
+                </nav>
+            );
+        }
+
+        function Dashboard({ formData }) {
+            const calculateDaysLeft = (examDate) => {
+                if (!examDate) return "N/A";
+                const today = new Date();
+                const target = new Date(examDate);
+                const diffTime = target - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                return diffDays > 0 ? `${diffDays} days` : "Passed";
+            };
+
+            const generateStudyPlan = () => {
+                let plan = `Your personalized study plan is designed to help you achieve ${formData.desiredPercentage} in your 12th CBSE exams and prepare for your career in ${formData.careerField}. `;
+                plan += `You’ll study ${formData.studyHours} hours per day on ${formData.studyDays.join(", ")}. `;
+                plan += `With ${calculateDaysLeft(formData.examDate)} left until your exam, focus on: `;
+                plan += `- Core subjects related to ${formData.stream}. `;
+                plan += `- Practice exams like ${careerData.find(item => item.branch === formData.careerField)?.exams || "relevant tests"}. `;
+                if (formData.motivation === "1-5") {
+                    plan += `- Build momentum with short, focused study sessions.`;
+                } else if (formData.motivation === "6-8") {
+                    plan += `- Maintain consistency with a weekly schedule.`;
+                } else {
+                    plan += `- Leverage your drive with advanced problem-solving.`;
+                }
+                if (formData.distraction !== "Nothing") {
+                    plan += ` To tackle ${formData.distraction.toLowerCase()}, use strategies like app blockers or focused group study.`;
+                }
+                return plan;
+            };
+
+            return (
+                <div className="dashboard-container">
+                    <h2 className="text-2xl font-semibold text-gray-800 mb-6">Your Study Dashboard, {formData.name}</h2>
+                    <div className="dashboard-section">
+                        <h3>Personal Details</h3>
+                        <p className="text-gray-600"><strong>Name:</strong> {formData.name}</p>
+                        <p className="text-gray-600"><strong>Gender:</strong> {formData.gender}</p>
+                        <p className="text-gray-600"><strong>Location:</strong> {formData.country}{formData.state ? `, ${formData.state}` : ""}</p>
+                        <p className="text-gray-600"><strong>Category:</strong> {formData.category}</p>
+                        <p className="text-gray-600"><strong>Date of Birth:</strong> {formData.dob || "N/A"}</p>
+                    </div>
+                    <div className="dashboard-section">
+                        <h3>Academic Profile</h3>
+                        <p className="text-gray-600"><strong>Current Class:</strong> {formData.currentClass}</p>
+                        <p className="text-gray-600"><strong>Class 10th Passing Year:</strong> {formData.yearOfPassing}</p>
+                        <p className="text-gray-600"><strong>Stream:</strong> {formData.stream}</p>
+                        <p className="text-gray-600"><strong>Career Path:</strong> {formData.careerField} ({formData.careerOption})</p>
+                        <p className="text-gray-600"><strong>Desired 12th Percentage:</strong> {formData.desiredPercentage}</p>
+                    </div>
+                    <div className="dashboard-section">
+                        <h3>Study Preferences</h3>
+                        <p className="text-gray-600"><strong>Motivation Level:</strong> {formData.motivation} (1-10)</p>
+                        <p className="text-gray-600"><strong>Main Distraction:</strong> {formData.distraction}</p>
+                        <p className="text-gray-600"><strong>Daily Study Hours:</strong> {formData.studyHours}</p>
+                        <p className="text-gray-600"><strong>Exam Date:</strong> {formData.examDate || "N/A"} ({calculateDaysLeft(formData.examDate)} left)</p>
+                        <p className="text-gray-600"><strong>Study Days:</strong> {formData.studyDays.join(", ")}</p>
+                    </div>
+                    <div className="dashboard-section">
+                        <h3>Your Personalized Study Plan</h3>
+                        <p className="text-gray-600">{generateStudyPlan()}</p>
+                    </div>
+                </div>
+            );
+        }
+
+        function StudyPlannerForm({ onSubmit }) {
+            const [formData, setFormData] = React.useState({
+                name: '',
+                gender: '',
+                country: '',
+                state: '',
+                category: '',
+                dob: '',
+                currentClass: '',
+                yearOfPassing: '',
+                stream: '',
+                careerAwareness: '',
+                careerOption: '',
+                careerProcess: '',
+                careerField: '',
+                careerGoal: '',
+                desiredPercentage: '',
+                motivation: '',
+                distraction: '',
+                studyHours: '',
+                examDate: '',
+                studyDays: []
+            });
+            const [step, setStep] = React.useState(0);
+            const [personalizedMessage, setPersonalizedMessage] = React.useState('');
+            const [error, setError] = React.useState('');
+
+            const handleChange = (e) => {
+                const { name, value } = e.target;
+                setFormData(prev => ({ ...prev, [name]: value }));
+                setError('');
+            };
+
+            const handleDayToggle = (day) => {
+                setFormData(prev => {
+                    const studyDays = prev.studyDays.includes(day)
+                        ? prev.studyDays.filter(d => d !== day)
+                        : [...prev.studyDays, day];
+                    return { ...prev, studyDays };
+                });
+                setError('');
+            };
+
+            const validateStep = () => {
+                switch (step) {
+                    case 1: return formData.name.trim() !== '';
+                    case 2: return formData.gender !== '';
+                    case 3: return formData.country !== '';
+                    case 4: return formData.country !== 'India' || formData.state !== '';
+                    case 5: return formData.category !== '';
+                    case 6: return formData.dob !== '';
+                    case 7: return formData.currentClass !== '';
+                    case 8: return formData.yearOfPassing !== '';
+                    case 9: return formData.stream !== '';
+                    case 10: return formData.careerAwareness !== '';
+                    case 11: return formData.careerOption !== '';
+                    case 12: return formData.careerProcess !== '';
+                    case 13: return formData.careerField !== '';
+                    case 14: return formData.careerGoal !== '';
+                    case 15: return formData.desiredPercentage !== '';
+                    case 16: return formData.motivation !== '';
+                    case 17: return formData.distraction !== '';
+                    case 18: return formData.studyHours !== '';
+                    case 19: return formData.examDate !== '';
+                    case 20: return formData.studyDays.length > 0;
+                    default: return true;
+                }
+            };
+
+            const handleNext = () => {
+                if (!validateStep()) {
+                    setError('Please fill in this field before proceeding.');
+                    return;
+                }
+
+                let message = '';
+                switch (step) {
+                    case 0:
+                        message = "Let’s craft a study plan tailored just for you! Ready to kickstart your journey?";
+                        break;
+                    case 1:
+                        message = `Hi ${formData.name}! Excited to help you chase your dreams—let’s keep going!`;
+                        break;
+                    case 2:
+                        message = `Thanks for sharing, ${formData.name}. We’re building something special for you!`;
+                        break;
+                    case 3:
+                        message = formData.country === 'India'
+                            ? "Great to know you’re in India! We’ll tailor your plan with local exams and resources in mind."
+                            : "Awesome, you’re outside India! We’ll customize your plan for global opportunities.";
+                        break;
+                    case 4:
+                        message = formData.country === 'India'
+                            ? `Nice to connect with you in ${formData.state}! This helps us personalize your journey further.`
+                            : "Got it! We’ll ensure your plan fits your international context perfectly.";
+                        break;
+                    case 5:
+                        message = {
+                            'General': `Thanks for the info, ${formData.name}. Let’s shape your path to success!`,
+                            'EWS/OBC (NCL)': `You’re set to shine, ${formData.name}! We’ll support you all the way.`,
+                            'SC/ST': `We’re here for you, ${formData.name}. Let’s make your goals happen!`,
+                            'Third Gender': `Your journey matters, ${formData.name}. Excited to guide you forward!`,
+                            'PWD': `You’ve got this, ${formData.name}! We’ll provide tailored support for your success.`
+                        }[formData.category];
+                        break;
+                    case 6:
+                        message = "Your DOB helps us align your plan with your academic timeline. Onward we go!";
+                        break;
+                    case 7:
+                        message = formData.currentClass === '11th Class'
+                            ? "Class 11 is a great time to start strong! We’ll guide you to build a solid foundation."
+                            : "Class 12 is a big year! We’ll help you stay focused and ace your exams.";
+                        break;
+                    case 8:
+                        message = "Thanks for sharing your Class 10th year. This helps us customize your next steps!";
+                        break;
+                    case 9:
+                        message = {
+                            'Science (PCM)': "PCM opens doors to engineering, tech, and more. Let’s explore your options!",
+                            'Science (PCB)': "PCB is perfect for medical and life sciences. We’ll guide you to your dream career!",
+                            'Commerce': "Commerce unlocks business and finance paths. Ready to dive in?",
+                            'Agriculture': "Agriculture is a vibrant field! We’ll help you grow your future.",
+                            'Humanities / Arts': "Humanities offers endless possibilities. Let’s find your passion!"
+                        }[formData.stream];
+                        break;
+                    case 10:
+                        message = formData.careerAwareness === 'Yes'
+                            ? "Awesome, you’ve got career ideas! Let’s refine them together."
+                            : "No stress! We’ll introduce you to exciting career paths for your stream.";
+                        break;
+                    case 11:
+                        message = `${formData.careerOption} sounds exciting! Let’s see how to make it yours.`;
+                        break;
+                    case 12:
+                        message = `The ${formData.careerProcess} path is clear. Let’s pick your specialization!`;
+                        break;
+                    case 13:
+                        const selectedCareer = careerData.find(item => 
+                            item.stream === formData.stream && 
+                            item.careerOption === formData.careerOption && 
+                            item.process === formData.careerProcess && 
+                            item.branch === formData.careerField
+                        );
+                        message = selectedCareer
+                            ? `${formData.careerField} is a fantastic choice! Prep for ${selectedCareer.exams} and aim for ${selectedCareer.careerPaths}. Ready to lock it in?`
+                            : `${formData.careerField} is a great pick! Let’s finalize your focus.`;
+                        break;
+                    case 14:
+                        message = formData.careerGoal === 'Yes, Go Ahead'
+                            ? `Let’s dive into CBSE prep for ${formData.careerField}! You’re on the right track.`
+                            : "No worries! Let’s explore other streams to find your perfect fit.";
+                        break;
+                    case 15:
+                        message = {
+                            '60-80%': `Solid goal, ${formData.name}! We’ll help you hit that mark with confidence.`,
+                            '81-90%': `Aiming high—love it! Let’s push for that 90% together.`,
+                            '91-100%': `Wow, ${formData.name}, you’re all in! We’ll help you ace that 90%+ goal!`
+                        }[formData.desiredPercentage];
+                        break;
+                    case 16:
+                        message = {
+                            '1-5': "It’s okay to start small. Let’s boost your motivation step by step!",
+                            '6-8': "You’re in a great spot! We’ll keep that momentum going strong.",
+                            '9-10': "Your drive is inspiring! Let’s channel it into big wins."
+                        }[formData.motivation];
+                        break;
+                    case 17:
+                        message = {
+                            'Phone / Social Media': "Phones can be tricky! Try app blockers and reward yourself after studying.",
+                            'Friends': "Friends are great, but focus comes first. Group study could help!",
+                            'Laziness': "We all feel lazy sometimes. Start with small tasks to build momentum!",
+                            'Nothing': "That’s amazing focus! Let’s keep it sharp with healthy habits."
+                        }[formData.distraction];
+                        break;
+                    case 18:
+                        message = `${formData.studyHours} hours daily? That’s a strong commitment—let’s make it count!`;
+                        break;
+                    case 19:
+                        message = "Your exam date is set! Every day brings you closer to crushing it.";
+                        break;
+                    case 20:
+                        message = "Love your study schedule! Consistency will lead you to success.";
+                        break;
+                }
+                setPersonalizedMessage(message);
+                if (step === 14 && formData.careerGoal === 'No, Want to Explore Other Streams Also') {
+                    setFormData(prev => ({
+                        ...prev,
+                        stream: '',
+                        careerAwareness: '',
+                        careerOption: '',
+                        careerProcess: '',
+                        careerField: '',
+                        careerGoal: ''
+                    }));
+                    setStep(9);
+                } else {
+                    setStep(prev => prev + 1);
+                }
+            };
+
+            const handleSubmit = () => {
+                if (!validateStep()) {
+                    setError('Please fill in this field before proceeding.');
+                    return;
+                }
+                onSubmit(formData);
+            };
+
+            const renderFormStep = () => {
+                switch (step) {
+                    case 0:
+                        return (
+                            <div className="text-center">
+                                <h3 className="text-xl font-semibold text-gray-800 mb-6">Ready to Build Your Perfect Study Plan?</h3>
+                                <button onClick={handleNext} className="btn-primary">Let’s Get Started!</button>
+                            </div>
+                        );
+                    case 1:
+                        return (
+                            <div>
+                                <label className="block text-gray-700 font-medium mb-2">What’s your full name?</label>
+                                <input type="text" name="name" value={formData.name} onChange={handleChange} />
+                                {error && <p className="error-message">{error}</p>}
+                                {formData.name.trim() && <button onClick={handleNext} className="mt-6 btn-primary w-full">Next</button>}
+                            </div>
+                        );
+                    case 2:
+                        return (
+                            <div>
+                                <label className="block text-gray-700 font-medium mb-2">What’s your gender?</label>
+                                <select name="gender" value={formData.gender} onChange={handleChange}>
+                                    <option value="">Select</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                {error && <p className="error-message">{error}</p>}
+                                {formData.gender && <button onClick={handleNext} className="mt-6 btn-primary w-full">Next</button>}
+                            </div>
+                        );
+                    case 3:
+                        return (
+                            <div>
+                                <label className="block text-gray-700 font-medium mb-2">Where do you live?</label>
+                                <select name="country" value={formData.country} onChange={handleChange}>
+                                    <option value="">Select</option>
+                                    <option value="India">India</option>
+                                    <option value="Outside India">Outside India</option>
+                                </select>
+                                {error && <p className="error-message">{error}</p>}
+                                {formData.country && <button onClick={handleNext} className="mt-6 btn-primary w-full">Next</button>}
+                            </div>
+                        );
+                    case 4:
+                        if (formData.country === 'India') {
+                            return (
+                                <div>
+                                    <label className="block text-gray-700 font-medium mb-2">Which State/UT are you from?</label>
+                                    <select name="state" value={formData.state} onChange={handleChange}>
+                                        <option value="">Select</option>
+                                        {statesUTs.map(state => (
+                                            <option key={state} value={state}>{state}</option>
+                                        ))}
+                                    </select>
+                                    {error && <p className="error-message">{error}</p>}
+                                    {formData.state && <button onClick={handleNext} className="mt-6 btn-primary w-full">Next</button>}
+                                </div>
+                            );
+                        }
+                        return (
+                            <div>
+                                <p className="text-gray-600 mb-6">We’ll customize your plan for international opportunities.</p>
+                                <button onClick={handleNext} className="btn-primary w-full">Next</button>
+                            </div>
+                        );
+                    case 5:
+                        return (
+                            <div>
+                                <label className="block text-gray-700 font-medium mb-2">Which category do you belong to?</label>
+                                <select name="category" value={formData.category} onChange={handleChange}>
+                                    <option value="">Select</option>
+                                    <option value="General">General</option>
+                                    <option value="EWS/OBC (NCL)">EWS/OBC (NCL)</option>
+                                    <option value="SC/ST">SC/ST</option>
+                                    <option value="Third Gender">Third Gender</option>
+                                    <option value="PWD">PWD</option>
+                                </select>
+                                {error && <p className="error-message">{error}</p>}
+                                {formData.category && <button onClick={handleNext} className="mt-6 btn-primary w-full">Next</button>}
+                            </div>
+                        );
+                    case 6:
+                        return (
+                            <div>
+                                <label className="block text-gray-700 font-medium mb-2">What’s your date of birth?</label>
+                                <input type="date" name="dob" value={formData.dob} onChange={handleChange} />
+                                {error && <p className="error-message">{error}</p>}
+                                {formData.dob && <button onClick={handleNext} className="mt-6 btn-primary w-full">Next</button>}
+                            </div>
+                        );
+                    case 7:
+                        return (
+                            <div>
+                                <label className="block text-gray-700 font-medium mb-2">What’s your current class?</label>
+                                <select name="currentClass" value={formData.currentClass} onChange={handleChange}>
+                                    <option value="">Select</option>
+                                    <option value="11th Class">11th Class</option>
+                                    <option value="12th Class">12th Class</option>
+                                </select>
+                                {error && <p className="error-message">{error}</p>}
+                                {formData.currentClass && <button onClick={handleNext} className="mt-6 btn-primary w-full">Next</button>}
+                            </div>
+                        );
+                    case 8:
+                        return (
+                            <div>
+                                <label className="block text-gray-700 font-medium mb-2">When did/will you pass Class 10th?</label>
+                                <select name="yearOfPassing" value={formData.yearOfPassing} onChange={handleChange}>
+                                    <option value="">Select</option>
+                                    {years.map(year => (
+                                        <option key={year} value={year}>{year}</option>
+                                    ))}
+                                </select>
+                                {error && <p className="error-message">{error}</p>}
+                                {formData.yearOfPassing && <button onClick={handleNext} className="mt-6 btn-primary w-full">Next</button>}
+                            </div>
+                        );
+                    case 9:
+                        return (
+                            <div>
+                                <label className="block text-gray-700 font-medium mb-2">Which stream are you pursuing?</label>
+                                <select name="stream" value={formData.stream} onChange={handleChange}>
+                                    <option value="">Select</option>
+                                    <option value="Science (PCM)">Science (PCM)</option>
+                                    <option value="Science (PCB)">Science (PCB)</option>
+                                    <option value="Commerce">Commerce</option>
+                                    <option value="Agriculture">Agriculture</option>
+                                    <option value="Humanities / Arts">Humanities / Arts</option>
+                                </select>
+                                {error && <p className="error-message">{error}</p>}
+                                {formData.stream && <button onClick={handleNext} className="mt-6 btn-primary w-full">Next</button>}
+                            </div>
+                        );
+                    case 10:
+                        return (
+                            <div>
+                                <label className="block text-gray-700 font-medium mb-2">Do you know specific career options in your {formData.stream} stream?</label>
+                                <select name="careerAwareness" value={formData.careerAwareness} onChange={handleChange}>
+                                    <option value="">Select</option>
+                                    <option value="Yes">Yes</option>
+                                    <option value="No">No</option>
+                                </select>
+                                {error && <p className="error-message">{error}</p>}
+                                {formData.careerAwareness && <button onClick={handleNext} className="mt-6 btn-primary w-full">Next</button>}
+                            </div>
+                        );
+                    case 11:
+                        const careerOptions = [...new Set(careerData
+                            .filter(item => item.stream === formData.stream)
+                            .map(item => item.careerOption))];
+                        return (
+                            <div>
+                                <label className="block text-gray-700 font-medium mb-2">Which career option interests you?</label>
+                                <select name="careerOption" value={formData.careerOption} onChange={handleChange}>
+                                    <option value="">Select</option>
+                                    {careerOptions.map(option => (
+                                        <option key={option} value={option}>{option}</option>
+                                    ))}
+                                </select>
+                                {error && <p className="error-message">{error}</p>}
+                                {formData.careerOption && <button onClick={handleNext} className="mt-6 btn-primary w-full">Next</button>}
+                            </div>
+                        );
+                    case 12:
+                        const careerProcesses = [...new Set(careerData
+                            .filter(item => item.stream === formData.stream && item.careerOption === formData.careerOption)
+                            .map(item => item.process))];
+                        return (
+                            <div>
+                                <label className="block text-gray-700 font-medium mb-2">What’s the process for {formData.careerOption}?</label>
+                                <select name="careerProcess" value={formData.careerProcess} onChange={handleChange}>
+                                    <option value="">Select</option>
+                                    {careerProcesses.map(process => (
+                                        <option key={process} value={process}>{process}</option>
+                                    ))}
+                                </select>
+                                {error && <p className="error-message">{error}</p>}
+                                {formData.careerProcess && <button onClick={handleNext} className="mt-6 btn-primary w-full">Next</button>}
+                            </div>
+                        );
+                    case 13:
+                        const careerFields = [...new Set(careerData
+                            .filter(item => item.stream === formData.stream && item.careerOption === formData.careerOption && item.process === formData.careerProcess)
+                            .map(item => item.branch))];
+                        return (
+                            <div>
+                                <label className="block text-gray-700 font-medium mb-2">Which field interests you in {formData.careerOption}?</label>
+                                <select name="careerField" value={formData.careerField} onChange={handleChange}>
+                                    <option value="">Select</option>
+                                    {careerFields.map(field => (
+                                        <option key={field} value={field}>{field}</option>
+                                    ))}
+                                </select>
+                                {error && <p className="error-message">{error}</p>}
+                                {formData.careerField && <button onClick={handleNext} className="mt-6 btn-primary w-full">Next</button>}
+                            </div>
+                        );
+                    case 14:
+                        return (
+                            <div>
+                                <label className="block text-gray-700 font-medium mb-2">Ready to focus on 12th CBSE prep for {formData.careerField}?</label>
+                                <select name="careerGoal" value={formData.careerGoal} onChange={handleChange}>
+                                    <option value="">Select</option>
+                                    <option value="Yes, Go Ahead">Yes, Go Ahead</option>
+                                    <option value="No, Want to Explore Other Streams Also">No, Explore Other Streams</option>
+                                </select>
+                                {error && <p className="error-message">{error}</p>}
+                                {formData.careerGoal && <button onClick={handleNext} className="mt-6 btn-primary w-full">Next</button>}
+                            </div>
+                        );
+                    case 15:
+                        return (
+                            <div>
+                                <label className="block text-gray-700 font-medium mb-2">What’s your desired 12th percentage?</label>
+                                <select name="desiredPercentage" value={formData.desiredPercentage} onChange={handleChange}>
+                                    <option value="">Select</option>
+                                    <option value="60-80%">60-80%</option>
+                                    <option value="81-90%">81-90%</option>
+                                    <option value="91-100%">91-100%</option>
+                                </select>
+                                {error && <p className="error-message">{error}</p>}
+                                {formData.desiredPercentage && <button onClick={handleNext} className="mt-6 btn-primary w-full">Next</button>}
+                            </div>
+                        );
+                    case 16:
+                        return (
+                            <div>
+                                <label className="block text-gray-700 font-medium mb-2">How motivated are you to study? (1-10)</label>
+                                <select name="motivation" value={formData.motivation} onChange={handleChange}>
+                                    <option value="">Select</option>
+                                    <option value="1-5">1-5</option>
+                                    <option value="6-8">6-8</option>
+                                    <option value="9-10">9-10</option>
+                                </select>
+                                {error && <p className="error-message">{error}</p>}
+                                {formData.motivation && <button onClick={handleNext} className="mt-6 btn-primary w-full">Next</button>}
+                            </div>
+                        );
+                    case 17:
+                        return (
+                            <div>
+                                <label className="block text-gray-700 font-medium mb-2">What distracts you most while studying?</label>
+                                <select name="distraction" value={formData.distraction} onChange={handleChange}>
+                                    <option value="">Select</option>
+                                    <option value="Phone / Social Media">Phone / Social Media</option>
+                                    <option value="Friends">Friends</option>
+                                    <option value="Laziness">Laziness</option>
+                                    <option value="Nothing">Nothing</option>
+                                </select>
+                                {error && <p className="error-message">{error}</p>}
+                                {formData.distraction && <button onClick={handleNext} className="mt-6 btn-primary w-full">Next</button>}
+                            </div>
+                        );
+                    case 18:
+                        return (
+                            <div>
+                                <label className="block text-gray-700 font-medium mb-2">How many hours will you study daily?</label>
+                                <select name="studyHours" value={formData.studyHours} onChange={handleChange}>
+                                    <option value="">Select</option>
+                                    {hours.map(hour => (
+                                        <option key={hour} value={hour}>{hour}</option>
+                                    ))}
+                                </select>
+                                {error && <p className="error-message">{error}</p>}
+                                {formData.studyHours && <button onClick={handleNext} className="mt-6 btn-primary w-full">Next</button>}
+                            </div>
+                        );
+                    case 19:
+                        return (
+                            <div>
+                                <label className="block text-gray-700 font-medium mb-2">What’s your target exam date?</label>
+                                <input type="date" name="examDate" value={formData.examDate} onChange={handleChange} />
+                                {error && <p className="error-message">{error}</p>}
+                                {formData.examDate && <button onClick={handleNext} className="mt-6 btn-primary w-full">Next</button>}
+                            </div>
+                        );
+                    case 20:
+                        return (
+                            <div>
+                                <label className="block text-gray-700 font-medium mb-2">Which days will you study?</label>
+                                <div className="flex flex-wrap">
+                                    {daysOfWeek.map(day => (
+                                        <button
+                                            key={day}
+                                            className={`day-button ${formData.studyDays.includes(day) ? 'selected' : ''}`}
+                                            onClick={() => handleDayToggle(day)}
+                                        >
+                                            {day}
+                                        </button>
+                                    ))}
+                                </div>
+                                {error && <p className="error-message">{error}</p>}
+                                {formData.studyDays.length > 0 && <button onClick={handleSubmit} className="mt-6 btn-primary w-full">Finish</button>}
+                            </div>
+                        );
+                    default:
+                        return null;
+                }
+            };
+
+            return (
+                <div className="form-container">
+                    {renderFormStep()}
+                    {personalizedMessage && step > 0 && <p className="prompt-message">{personalizedMessage}</p>}
+                </div>
+            );
+        }
+
+        function App() {
+            const [showForm, setShowForm] = React.useState(true);
+            const [formData, setFormData] = React.useState(null);
+
+            const handleFormSubmit = (data) => {
+                setFormData(data);
+                setShowForm(false);
+            };
+
+            return (
+                <div>
+                    <Navbar />
+                    <div className="container mx-auto py-10">
+                        <h2 className="text-3xl font-semibold text-gray-800 mb-8 text-center">AI Study Planner</h2>
+                        {showForm ? (
+                            <StudyPlannerForm onSubmit={handleFormSubmit} />
+                        ) : (
+                            <Dashboard formData={formData} />
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
